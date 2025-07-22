@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Celestial Object Search</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 2em;
+        }
+        #search-container {
+            margin-bottom: 1em;
+        }
+        #results-container {
+            border: 1px solid #ccc;
+            padding: 1em;
+        }
+    </style>
+</head>
+<body>
+    <h1>Celestial Object Search</h1>
+    <div id="search-container">
+        <input type="text" id="search-box" placeholder="Enter object name...">
+        <button id="search-button">Search</button>
+    </div>
+    <div id="results-container">
+        </div>
+
+    <script>
+        const searchButton = document.getElementById('search-button');
+        const searchBox = document.getElementById('search-box');
+        const resultsContainer = document.getElementById('results-container');
+
+        searchButton.addEventListener('click', () => {
+            const query = searchBox.value;
+            fetch(`/search?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsContainer.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(item => {
+                            const resultItem = document.createElement('div');
+                            resultItem.innerHTML = `
+                                <h3>${item.name}</h3>
+                                <p><strong>Type:</strong> ${item.type}</p>
+                                <p>${item.description}</p>
+                            `;
+                            resultsContainer.appendChild(resultItem);
+                        });
+                    } else {
+                        resultsContainer.innerHTML = '<p>No results found.</p>';
+                    }
+                });
+        });
+    </script>
+</body>
+</html>
