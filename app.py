@@ -11,9 +11,11 @@ app.config['SECRET_KEY'] = 'your-secret-key'
 
 import dj_database_url
 
+import dj_database_url
+
 # Function to connect to the database
 def get_db_connection():
-    conn_info = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    conn_info = dj_database_url.parse(os.environ['DATABASE_URL'])
     conn = psycopg2.connect(
         database=conn_info['NAME'],
         user=conn_info['USER'],
