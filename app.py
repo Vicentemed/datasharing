@@ -9,20 +9,9 @@ from functools import wraps
 app = Flask(__name__, static_url_path='')
 app.config['SECRET_KEY'] = 'your-secret-key'
 
-import dj_database_url
-
-import dj_database_url
-
 # Function to connect to the database
 def get_db_connection():
-    conn_info = dj_database_url.parse(os.environ['DATABASE_URL'])
-    conn = psycopg2.connect(
-        database=conn_info['NAME'],
-        user=conn_info['USER'],
-        password=conn_info['PASSWORD'],
-        host=conn_info['HOST'],
-        port=conn_info['PORT']
-    )
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
     return conn
 
 def token_required(f):
