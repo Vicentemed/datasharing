@@ -42,6 +42,10 @@ def script():
 def style():
     return send_from_directory('.', 'style.css')
 
+@app.route('/register')
+def register():
+    return send_from_directory('.', 'register.html')
+
 @app.route('/dentists', methods=['POST'])
 def create_dentist():
     data = request.get_json()
