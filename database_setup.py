@@ -1,15 +1,16 @@
-import sqlite3
+import os
+import psycopg2
 
-# Connect to the database (or create it if it doesn't exist)
-conn = sqlite3.connect('dental_chart.db')
+# Connect to the database
+conn = psycopg2.connect(os.environ['DATABASE_URL'])
 
 # Create a cursor object
-c = conn.cursor()
+cur = conn.cursor()
 
 # Create the dentists table
-c.execute('''
+cur.execute('''
 CREATE TABLE dentists (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL
@@ -17,9 +18,9 @@ CREATE TABLE dentists (
 ''')
 
 # Create the patients table
-c.execute('''
+cur.execute('''
 CREATE TABLE patients (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     date_of_birth TEXT NOT NULL,
     dentist_id INTEGER,
@@ -28,9 +29,9 @@ CREATE TABLE patients (
 ''')
 
 # Create the dental_charts table
-c.execute('''
+cur.execute('''
 CREATE TABLE dental_charts (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     patient_id INTEGER,
     chart_data TEXT NOT NULL,
     FOREIGN KEY (patient_id) REFERENCES patients (id)
@@ -39,6 +40,7 @@ CREATE TABLE dental_charts (
 
 # Commit the changes and close the connection
 conn.commit()
+cur.close()
 conn.close()
 
 print("Database and tables created successfully.")

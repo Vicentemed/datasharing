@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request, send_from_directory
-import sqlite3
+import os
+import psycopg2
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
@@ -10,8 +11,7 @@ app.config['SECRET_KEY'] = 'your-secret-key'
 
 # Function to connect to the database
 def get_db_connection():
-    conn = sqlite3.connect('dental_chart.db')
-    conn.row_factory = sqlite3.Row
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
     return conn
 
 def token_required(f):
