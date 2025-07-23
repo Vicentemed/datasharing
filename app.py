@@ -34,9 +34,13 @@ def token_required(f):
 def index():
     return send_from_directory('.', 'index.html')
 
-@app.route('/<path:path>')
-def static_files(path):
-    return send_from_directory('.', path)
+@app.route('/script.js')
+def script():
+    return send_from_directory('.', 'script.js')
+
+@app.route('/style.css')
+def style():
+    return send_from_directory('.', 'style.css')
 
 @app.route('/dentists', methods=['POST'])
 def create_dentist():
