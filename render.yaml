@@ -9,6 +9,6 @@ services:
         fromDatabase:
           name: dental-chart-db
           property: connectionString
-  - type: psql
+  - type: postgres
     name: dental-chart-db
     plan: free
