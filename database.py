@@ -1,22 +1,37 @@
 import sqlite3
 
 def init_db():
-    conn = sqlite3.connect('celestial_objects.db')
+    conn = sqlite3.connect('dental_chart.db')
     c = conn.cursor()
+
+    # Create patients table
     c.execute('''
-        CREATE TABLE IF NOT EXISTS objects (
+        CREATE TABLE IF NOT EXISTS patients (
             id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            type TEXT NOT NULL,
-            description TEXT
+            name TEXT NOT NULL
         )
     ''')
-    c.execute("INSERT INTO objects (name, type, description) VALUES (?, ?, ?)",
-              ('Andromeda Galaxy', 'Galaxy', 'A spiral galaxy approximately 2.537 million light-years from Earth.'))
-    c.execute("INSERT INTO objects (name, type, description) VALUES (?, ?, ?)",
-              ('Orion Nebula', 'Nebula', 'A diffuse nebula situated in the Milky Way, being south of Orion\'s Belt in the constellation of Orion.'))
-    c.execute("INSERT INTO objects (name, type, description) VALUES (?, ?, ?)",
-                ('Betelgeuse', 'Star', 'A red supergiant of spectral type M1-2 and one of the largest stars visible to the naked eye.'))
+
+    # Create teeth table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS teeth (
+            id INTEGER PRIMARY KEY,
+            patient_id INTEGER NOT NULL,
+            tooth_number INTEGER NOT NULL,
+            status TEXT,
+            FOREIGN KEY (patient_id) REFERENCES patients (id)
+        )
+    ''')
+
+    # Add a sample patient
+    c.execute("INSERT INTO patients (name) VALUES (?)", ('John Doe',))
+    patient_id = c.lastrowid
+
+    # Add teeth for the sample patient
+    for i in range(1, 33):
+        c.execute("INSERT INTO teeth (patient_id, tooth_number, status) VALUES (?, ?, ?)",
+                  (patient_id, i, 'healthy'))
+
     conn.commit()
     conn.close()
 

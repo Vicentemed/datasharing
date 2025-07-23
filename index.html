@@ -1,56 +1,105 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Celestial Object Search</title>
+    <title>Dental Chart</title>
     <style>
         body {
             font-family: sans-serif;
             margin: 2em;
         }
-        #search-container {
-            margin-bottom: 1em;
+        #chart-container {
+            width: 800px;
+            margin: 0 auto;
         }
-        #results-container {
-            border: 1px solid #ccc;
-            padding: 1em;
+        .tooth {
+            fill: #fff;
+            stroke: #000;
+            stroke-width: 1;
+            cursor: pointer;
+        }
+        .tooth.selected {
+            fill: #f00;
         }
     </style>
 </head>
 <body>
-    <h1>Celestial Object Search</h1>
-    <div id="search-container">
-        <input type="text" id="search-box" placeholder="Enter object name...">
-        <button id="search-button">Search</button>
+    <h1>Dental Chart</h1>
+    <div id="chart-container">
+        <svg id="dental-chart" width="100%" viewBox="0 0 800 400"></svg>
     </div>
-    <div id="results-container">
-        </div>
 
     <script>
-        const searchButton = document.getElementById('search-button');
-        const searchBox = document.getElementById('search-box');
-        const resultsContainer = document.getElementById('results-container');
+        const dentalChart = document.getElementById('dental-chart');
+        const patientId = 1; // For now, we'll hardcode the patient ID
 
-        searchButton.addEventListener('click', () => {
-            const query = searchBox.value;
-            fetch(`/search?q=${query}`)
+        const toothStatusColors = {
+            'healthy': '#fff',
+            'filling': '#aaa',
+            'extraction': '#f00',
+        };
+
+        // Function to generate the tooth layout
+        function generateChart() {
+            const teeth = [];
+            // Upper arch
+            for (let i = 0; i < 16; i++) {
+                teeth.push({ id: i + 1, x: 50 + i * 45, y: 100, width: 40, height: 80 });
+            }
+            // Lower arch
+            for (let i = 0; i < 16; i++) {
+                teeth.push({ id: i + 17, x: 50 + i * 45, y: 220, width: 40, height: 80 });
+            }
+
+            teeth.forEach(tooth => {
+                const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                rect.setAttribute('id', `tooth-${tooth.id}`);
+                rect.setAttribute('class', 'tooth');
+                rect.setAttribute('x', tooth.x);
+                rect.setAttribute('y', tooth.y);
+                rect.setAttribute('width', tooth.width);
+                rect.setAttribute('height', tooth.height);
+                rect.setAttribute('data-tooth-id', tooth.id);
+                dentalChart.appendChild(rect);
+            });
+        }
+
+        // Function to fetch and update tooth status
+        function updateChart() {
+            fetch(`/patient/${patientId}/teeth`)
                 .then(response => response.json())
-                .then(data => {
-                    resultsContainer.innerHTML = '';
-                    if (data.length > 0) {
-                        data.forEach(item => {
-                            const resultItem = document.createElement('div');
-                            resultItem.innerHTML = `
-                                <h3>${item.name}</h3>
-                                <p><strong>Type:</strong> ${item.type}</p>
-                                <p>${item.description}</p>
-                            `;
-                            resultsContainer.appendChild(resultItem);
-                        });
-                    } else {
-                        resultsContainer.innerHTML = '<p>No results found.</p>';
-                    }
+                .then(teeth => {
+                    teeth.forEach(tooth => {
+                        const toothElement = document.getElementById(`tooth-${tooth.tooth_number}`);
+                        toothElement.style.fill = toothStatusColors[tooth.status];
+                        toothElement.setAttribute('data-db-id', tooth.id);
+                    });
                 });
+        }
+
+        // Event listener for clicking on a tooth
+        dentalChart.addEventListener('click', (e) => {
+            if (e.target.classList.contains('tooth')) {
+                const toothElement = e.target;
+                const dbId = toothElement.getAttribute('data-db-id');
+                const currentStatus = Object.keys(toothStatusColors).find(key => toothStatusColors[key] === toothElement.style.fill);
+                const statuses = Object.keys(toothStatusColors);
+                const nextStatus = statuses[(statuses.indexOf(currentStatus) + 1) % statuses.length];
+
+                fetch(`/tooth/${dbId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ status: nextStatus }),
+                })
+                .then(() => {
+                    updateChart();
+                });
+            }
         });
+
+        generateChart();
+        updateChart();
     </script>
 </body>
 </html>
