@@ -202,6 +202,9 @@ def update_patient(current_user, patient_id):
 def delete_patient(current_user, patient_id):
     conn = get_db_connection()
     cur = conn.cursor()
+    # First, delete all dental charts for the patient
+    cur.execute('DELETE FROM dental_charts WHERE patient_id = %s', (patient_id,))
+    # Then, delete the patient
     cur.execute('DELETE FROM patients WHERE id = %s AND dentist_id = %s', (patient_id, current_user))
     conn.commit()
     cur.close()
