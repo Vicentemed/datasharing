@@ -25,8 +25,10 @@ document.addEventListener('DOMContentLoaded', () => {
         login: async (email, password) => {
             const response = await fetch('/dentists/login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: email, password })
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Basic ' + btoa(email + ':' + password)
+                }
             });
             return response.json();
         },
