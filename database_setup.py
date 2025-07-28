@@ -7,9 +7,9 @@ conn = psycopg2.connect(os.environ['DATABASE_URL'])
 # Create a cursor object
 cur = conn.cursor()
 
-# Create the dentists table
+# Create the dentists table if it doesn't exist
 cur.execute('''
-CREATE TABLE dentists (
+CREATE TABLE IF NOT EXISTS dentists (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
@@ -17,9 +17,9 @@ CREATE TABLE dentists (
 )
 ''')
 
-# Create the patients table
+# Create the patients table if it doesn't exist
 cur.execute('''
-CREATE TABLE patients (
+CREATE TABLE IF NOT EXISTS patients (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     date_of_birth TEXT NOT NULL,
@@ -28,9 +28,9 @@ CREATE TABLE patients (
 )
 ''')
 
-# Create the dental_charts table
+# Create the dental_charts table if it doesn't exist
 cur.execute('''
-CREATE TABLE dental_charts (
+CREATE TABLE IF NOT EXISTS dental_charts (
     id SERIAL PRIMARY KEY,
     patient_id INTEGER,
     chart_data TEXT NOT NULL,
