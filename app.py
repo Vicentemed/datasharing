@@ -72,9 +72,14 @@ def create_dentist():
 
     return jsonify({"message": "Dentist created successfully"}), 201
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
 @app.route('/dentists/login', methods=['POST'])
 def login():
     auth = request.authorization
+    logging.info(f"Auth: {auth}")
     if not auth or not auth.username or not auth.password:
         return jsonify({"error": "Could not verify"}), 401
 
@@ -85,8 +90,12 @@ def login():
     cur.close()
     conn.close()
 
+    logging.info(f"Dentist: {dentist}")
+
     if not dentist:
         return jsonify({"error": "Could not verify"}), 401
+
+    logging.info(f"Password check: {check_password_hash(dentist['password'], auth.password)}")
 
     if check_password_hash(dentist['password'], auth.password):
         token = jwt.encode({
