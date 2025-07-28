@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, send_from_directory
 import os
 import psycopg2
+from psycopg2.extras import DictCursor
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 import datetime
@@ -56,15 +57,17 @@ def create_dentist():
     hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
 
     conn = get_db_connection()
+    cur = conn.cursor()
     try:
-        conn.execute(
-            'INSERT INTO dentists (name, email, password) VALUES (?, ?, ?)',
+        cur.execute(
+            'INSERT INTO dentists (name, email, password) VALUES (%s, %s, %s)',
             (name, email, hashed_password)
         )
         conn.commit()
-    except sqlite3.IntegrityError:
+    except psycopg2.errors.UniqueViolation:
         return jsonify({"error": "Email already exists"}), 409
     finally:
+        cur.close()
         conn.close()
 
     return jsonify({"message": "Dentist created successfully"}), 201
@@ -76,7 +79,10 @@ def login():
         return jsonify({"error": "Could not verify"}), 401
 
     conn = get_db_connection()
-    dentist = conn.execute('SELECT * FROM dentists WHERE email = ?', (auth.username,)).fetchone()
+    cur = conn.cursor(cursor_factory=DictCursor)
+    cur.execute('SELECT * FROM dentists WHERE email = %s', (auth.username,))
+    dentist = cur.fetchone()
+    cur.close()
     conn.close()
 
     if not dentist:
@@ -99,11 +105,13 @@ def create_patient(current_user):
     date_of_birth = data['date_of_birth']
 
     conn = get_db_connection()
-    conn.execute(
-        'INSERT INTO patients (name, date_of_birth, dentist_id) VALUES (?, ?, ?)',
+    cur = conn.cursor()
+    cur.execute(
+        'INSERT INTO patients (name, date_of_birth, dentist_id) VALUES (%s, %s, %s)',
         (name, date_of_birth, current_user)
     )
     conn.commit()
+    cur.close()
     conn.close()
 
     return jsonify({'message': 'Patient created successfully'}), 201
@@ -112,7 +120,10 @@ def create_patient(current_user):
 @token_required
 def get_patients(current_user):
     conn = get_db_connection()
-    patients = conn.execute('SELECT * FROM patients WHERE dentist_id = ?', (current_user,)).fetchall()
+    cur = conn.cursor(cursor_factory=DictCursor)
+    cur.execute('SELECT * FROM patients WHERE dentist_id = %s', (current_user,))
+    patients = cur.fetchall()
+    cur.close()
     conn.close()
     return jsonify([dict(row) for row in patients])
 
@@ -120,7 +131,10 @@ def get_patients(current_user):
 @token_required
 def get_patient(current_user, patient_id):
     conn = get_db_connection()
-    patient = conn.execute('SELECT * FROM patients WHERE id = ? AND dentist_id = ?', (patient_id, current_user)).fetchone()
+    cur = conn.cursor(cursor_factory=DictCursor)
+    cur.execute('SELECT * FROM patients WHERE id = %s AND dentist_id = %s', (patient_id, current_user))
+    patient = cur.fetchone()
+    cur.close()
     conn.close()
     if patient:
         return jsonify(dict(patient))
@@ -134,11 +148,13 @@ def update_patient(current_user, patient_id):
     date_of_birth = data['date_of_birth']
 
     conn = get_db_connection()
-    conn.execute(
-        'UPDATE patients SET name = ?, date_of_birth = ? WHERE id = ? AND dentist_id = ?',
+    cur = conn.cursor()
+    cur.execute(
+        'UPDATE patients SET name = %s, date_of_birth = %s WHERE id = %s AND dentist_id = %s',
         (name, date_of_birth, patient_id, current_user)
     )
     conn.commit()
+    cur.close()
     conn.close()
 
     return jsonify({'message': 'Patient updated successfully'})
@@ -147,8 +163,10 @@ def update_patient(current_user, patient_id):
 @token_required
 def delete_patient(current_user, patient_id):
     conn = get_db_connection()
-    conn.execute('DELETE FROM patients WHERE id = ? AND dentist_id = ?', (patient_id, current_user))
+    cur = conn.cursor()
+    cur.execute('DELETE FROM patients WHERE id = %s AND dentist_id = %s', (patient_id, current_user))
     conn.commit()
+    cur.close()
     conn.close()
 
     return jsonify({'message': 'Patient deleted successfully'})
@@ -158,19 +176,23 @@ def delete_patient(current_user, patient_id):
 def create_chart(current_user, patient_id):
     # First, check if the patient belongs to the current dentist
     conn = get_db_connection()
-    patient = conn.execute('SELECT * FROM patients WHERE id = ? AND dentist_id = ?', (patient_id, current_user)).fetchone()
+    cur = conn.cursor(cursor_factory=DictCursor)
+    cur.execute('SELECT * FROM patients WHERE id = %s AND dentist_id = %s', (patient_id, current_user))
+    patient = cur.fetchone()
     if not patient:
+        cur.close()
         conn.close()
         return jsonify({'message': 'Patient not found'}), 404
 
     data = request.get_json()
     chart_data = data['chart_data']
 
-    conn.execute(
-        'INSERT INTO dental_charts (patient_id, chart_data) VALUES (?, ?)',
+    cur.execute(
+        'INSERT INTO dental_charts (patient_id, chart_data) VALUES (%s, %s)',
         (patient_id, chart_data)
     )
     conn.commit()
+    cur.close()
     conn.close()
 
     return jsonify({'message': 'Dental chart created successfully'}), 201
@@ -179,12 +201,17 @@ def create_chart(current_user, patient_id):
 @token_required
 def get_charts_for_patient(current_user, patient_id):
     conn = get_db_connection()
-    patient = conn.execute('SELECT * FROM patients WHERE id = ? AND dentist_id = ?', (patient_id, current_user)).fetchone()
+    cur = conn.cursor(cursor_factory=DictCursor)
+    cur.execute('SELECT * FROM patients WHERE id = %s AND dentist_id = %s', (patient_id, current_user))
+    patient = cur.fetchone()
     if not patient:
+        cur.close()
         conn.close()
         return jsonify({'message': 'Patient not found'}), 404
 
-    charts = conn.execute('SELECT * FROM dental_charts WHERE patient_id = ?', (patient_id,)).fetchall()
+    cur.execute('SELECT * FROM dental_charts WHERE patient_id = %s', (patient_id,))
+    charts = cur.fetchall()
+    cur.close()
     conn.close()
     return jsonify([dict(row) for row in charts])
 
@@ -192,11 +219,14 @@ def get_charts_for_patient(current_user, patient_id):
 @token_required
 def get_chart(current_user, chart_id):
     conn = get_db_connection()
-    chart = conn.execute('''
+    cur = conn.cursor(cursor_factory=DictCursor)
+    cur.execute('''
         SELECT dc.* FROM dental_charts dc
         JOIN patients p ON dc.patient_id = p.id
-        WHERE dc.id = ? AND p.dentist_id = ?
-    ''', (chart_id, current_user)).fetchone()
+        WHERE dc.id = %s AND p.dentist_id = %s
+    ''', (chart_id, current_user))
+    chart = cur.fetchone()
+    cur.close()
     conn.close()
     if chart:
         return jsonify(dict(chart))
@@ -206,23 +236,27 @@ def get_chart(current_user, chart_id):
 @token_required
 def update_chart(current_user, chart_id):
     conn = get_db_connection()
-    chart = conn.execute('''
+    cur = conn.cursor(cursor_factory=DictCursor)
+    cur.execute('''
         SELECT dc.* FROM dental_charts dc
         JOIN patients p ON dc.patient_id = p.id
-        WHERE dc.id = ? AND p.dentist_id = ?
-    ''', (chart_id, current_user)).fetchone()
+        WHERE dc.id = %s AND p.dentist_id = %s
+    ''', (chart_id, current_user))
+    chart = cur.fetchone()
     if not chart:
+        cur.close()
         conn.close()
         return jsonify({'message': 'Chart not found'}), 404
 
     data = request.get_json()
     chart_data = data['chart_data']
 
-    conn.execute(
-        'UPDATE dental_charts SET chart_data = ? WHERE id = ?',
+    cur.execute(
+        'UPDATE dental_charts SET chart_data = %s WHERE id = %s',
         (chart_data, chart_id)
     )
     conn.commit()
+    cur.close()
     conn.close()
 
     return jsonify({'message': 'Chart updated successfully'})
@@ -231,17 +265,21 @@ def update_chart(current_user, chart_id):
 @token_required
 def delete_chart(current_user, chart_id):
     conn = get_db_connection()
-    chart = conn.execute('''
+    cur = conn.cursor(cursor_factory=DictCursor)
+    cur.execute('''
         SELECT dc.* FROM dental_charts dc
         JOIN patients p ON dc.patient_id = p.id
-        WHERE dc.id = ? AND p.dentist_id = ?
-    ''', (chart_id, current_user)).fetchone()
+        WHERE dc.id = %s AND p.dentist_id = %s
+    ''', (chart_id, current_user))
+    chart = cur.fetchone()
     if not chart:
+        cur.close()
         conn.close()
         return jsonify({'message': 'Chart not found'}), 404
 
-    conn.execute('DELETE FROM dental_charts WHERE id = ?', (chart_id,))
+    cur.execute('DELETE FROM dental_charts WHERE id = %s', (chart_id,))
     conn.commit()
+    cur.close()
     conn.close()
 
     return jsonify({'message': 'Chart deleted successfully'})
