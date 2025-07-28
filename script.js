@@ -16,10 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const addChartForm = document.getElementById('add-chart-form');
     const chartDataInput = document.getElementById('chart-data');
 
-    let token = null;
+    let token = localStorage.getItem('token');
     let currentPatientId = null;
 
-    // --- API Functions ---
+    // --- UI Functions ---
 
     const api = {
         login: async (email, password) => {
@@ -82,6 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
         loadPatients();
     };
 
+    document.getElementById('manage-patients-button').addEventListener('click', () => {
+        window.location.href = '/patients.html';
+    });
+
     const loadPatients = async () => {
         const patients = await api.getPatients();
         patientsList.innerHTML = '';
@@ -114,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = passwordInput.value;
         const data = await api.login(email, password);
         if (data.token) {
+            localStorage.setItem('token', data.token);
             token = data.token;
             showMain();
         } else {

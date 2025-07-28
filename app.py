@@ -47,6 +47,10 @@ def style():
 def register():
     return send_from_directory('.', 'register.html')
 
+@app.route('/patients.html')
+def patients_page():
+    return send_from_directory('.', 'patients.html')
+
 @app.route('/dentists', methods=['POST'])
 def create_dentist():
     data = request.get_json()
@@ -112,12 +116,18 @@ def create_patient(current_user):
     data = request.get_json()
     name = data['name']
     date_of_birth = data['date_of_birth']
+    age = data.get('age')
+    gender = data.get('gender')
+    height = data.get('height')
+    weight = data.get('weight')
+    diabetes_mellitus_type_ii = data.get('diabetes_mellitus_type_ii')
+    diabetes_mellitus_type_ii_date = data.get('diabetes_mellitus_type_ii_date')
 
     conn = get_db_connection()
     cur = conn.cursor()
     cur.execute(
-        'INSERT INTO patients (name, date_of_birth, dentist_id) VALUES (%s, %s, %s)',
-        (name, date_of_birth, current_user)
+        'INSERT INTO patients (name, date_of_birth, age, gender, height, weight, diabetes_mellitus_type_ii, diabetes_mellitus_type_ii_date, dentist_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+        (name, date_of_birth, age, gender, height, weight, diabetes_mellitus_type_ii, diabetes_mellitus_type_ii_date, current_user)
     )
     conn.commit()
     cur.close()

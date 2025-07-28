@@ -23,6 +23,12 @@ CREATE TABLE IF NOT EXISTS patients (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     date_of_birth TEXT NOT NULL,
+    age INTEGER,
+    gender TEXT,
+    height REAL,
+    weight REAL,
+    diabetes_mellitus_type_ii BOOLEAN,
+    diabetes_mellitus_type_ii_date TEXT,
     dentist_id INTEGER,
     FOREIGN KEY (dentist_id) REFERENCES dentists (id)
 )

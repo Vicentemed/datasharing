@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div id="patients-container">
+            <h2>Patient Management</h2>
+            <button id="logout-button">Logout</button>
+            <h3>Add New Patient</h3>
+            <form id="add-patient-form">
+                <input type="text" id="patient-name" placeholder="Patient Name" required>
+                <input type="date" id="patient-dob" required>
+                <input type="number" id="patient-age" placeholder="Age">
+                <select id="patient-gender">
+                    <option value="">Select Gender</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="number" id="patient-height" placeholder="Height (cm)">
+                <input type="number" id="patient-weight" placeholder="Weight (kg)">
+                <fieldset>
+                    <legend>Medical History</legend>
+                    <div>
+                        <label>Diabetes Mellitus Type II:</label>
+                        <input type="radio" name="diabetes" value="yes"> Yes
+                        <input type="radio" name="diabetes" value="no" checked> No
+                        <input type="date" id="diabetes-date" style="display: none;">
+                    </div>
+                </fieldset>
+                <button type="submit">Add Patient</button>
+            </form>
+            <h3>Existing Patients</h3>
+            <ul id="patients-list"></ul>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const logoutButton = document.getElementById('logout-button');
+            const addPatientForm = document.getElementById('add-patient-form');
+            const patientsList = document.getElementById('patients-list');
+            const diabetesRadios = document.querySelectorAll('input[name="diabetes"]');
+            const diabetesDateInput = document.getElementById('diabetes-date');
+
+            let token = localStorage.getItem('token');
+
+            if (!token) {
+                window.location.href = '/';
+            }
+
+            const api = {
+                getPatients: async () => {
+                    const response = await fetch('/patients', {
+                        headers: { 'x-access-token': token }
+                    });
+                    return response.json();
+                },
+                addPatient: async (patientData) => {
+                    const response = await fetch('/patients', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-access-token': token
+                        },
+                        body: JSON.stringify(patientData)
+                    });
+                    return response.json();
+                },
+                deletePatient: async (patientId) => {
+                    const response = await fetch(`/patients/${patientId}`, {
+                        method: 'DELETE',
+                        headers: { 'x-access-token': token }
+                    });
+                    return response.json();
+                }
+            };
+
+            const loadPatients = async () => {
+                const patients = await api.getPatients();
+                patientsList.innerHTML = '';
+                patients.forEach(patient => {
+                    const li = document.createElement('li');
+                    li.textContent = `${patient.name} (${patient.date_of_birth})`;
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', async () => {
+                        await api.deletePatient(patient.id);
+                        loadPatients();
+                    });
+                    li.appendChild(deleteButton);
+                    patientsList.appendChild(li);
+                });
+            };
+
+            diabetesRadios.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.value === 'yes') {
+                        diabetesDateInput.style.display = 'inline-block';
+                    } else {
+                        diabetesDateInput.style.display = 'none';
+                    }
+                });
+            });
+
+            addPatientForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const patientData = {
+                    name: document.getElementById('patient-name').value,
+                    date_of_birth: document.getElementById('patient-dob').value,
+                    age: document.getElementById('patient-age').value,
+                    gender: document.getElementById('patient-gender').value,
+                    height: document.getElementById('patient-height').value,
+                    weight: document.getElementById('patient-weight').value,
+                    diabetes_mellitus_type_ii: document.querySelector('input[name="diabetes"]:checked').value === 'yes',
+                    diabetes_mellitus_type_ii_date: document.getElementById('diabetes-date').value
+                };
+                await api.addPatient(patientData);
+                loadPatients();
+                addPatientForm.reset();
+            });
+
+            logoutButton.addEventListener('click', () => {
+                localStorage.removeItem('token');
+                window.location.href = '/';
+            });
+
+            loadPatients();
+        });
+    </script>
+</body>
+</html>
