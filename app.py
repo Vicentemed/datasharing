@@ -125,9 +125,28 @@ def create_patient(current_user):
 
     conn = get_db_connection()
     cur = conn.cursor()
+    hta = data.get('hta')
+    hta_date = data.get('hta_date')
+    lung_diseases = data.get('lung_diseases')
+    lung_diseases_date = data.get('lung_diseases_date')
+    gastrointestinal_diseases = data.get('gastrointestinal_diseases')
+    gastrointestinal_diseases_date = data.get('gastrointestinal_diseases_date')
+    liver_diseases = data.get('liver_diseases')
+    liver_diseases_date = data.get('liver_diseases_date')
+    neurological_diseases = data.get('neurological_diseases')
+    neurological_diseases_date = data.get('neurological_diseases_date')
+    cancer = data.get('cancer')
+    cancer_date = data.get('cancer_date')
+    osteoarticular_diseases = data.get('osteoarticular_diseases')
+    osteoarticular_diseases_date = data.get('osteoarticular_diseases_date')
+    sexual_diseases = data.get('sexual_diseases')
+    sexual_diseases_date = data.get('sexual_diseases_date')
+
+    conn = get_db_connection()
+    cur = conn.cursor()
     cur.execute(
-        'INSERT INTO patients (name, date_of_birth, age, gender, height, weight, diabetes_mellitus_type_ii, diabetes_mellitus_type_ii_date, dentist_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
-        (name, date_of_birth, age, gender, height, weight, diabetes_mellitus_type_ii, diabetes_mellitus_type_ii_date, current_user)
+        'INSERT INTO patients (name, date_of_birth, age, gender, height, weight, diabetes_mellitus_type_ii, diabetes_mellitus_type_ii_date, hta, hta_date, lung_diseases, lung_diseases_date, gastrointestinal_diseases, gastrointestinal_diseases_date, liver_diseases, liver_diseases_date, neurological_diseases, neurological_diseases_date, cancer, cancer_date, osteoarticular_diseases, osteoarticular_diseases_date, sexual_diseases, sexual_diseases_date, dentist_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)',
+        (name, date_of_birth, age, gender, height, weight, diabetes_mellitus_type_ii, diabetes_mellitus_type_ii_date, hta, hta_date, lung_diseases, lung_diseases_date, gastrointestinal_diseases, gastrointestinal_diseases_date, liver_diseases, liver_diseases_date, neurological_diseases, neurological_diseases_date, cancer, cancer_date, osteoarticular_diseases, osteoarticular_diseases_date, sexual_diseases, sexual_diseases_date, current_user)
     )
     conn.commit()
     cur.close()

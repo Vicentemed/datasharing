@@ -32,6 +32,54 @@
                         <input type="radio" name="diabetes" value="no" checked> No
                         <input type="date" id="diabetes-date" style="display: none;">
                     </div>
+                    <div>
+                        <label>HTA:</label>
+                        <input type="radio" name="hta" value="yes"> Yes
+                        <input type="radio" name="hta" value="no" checked> No
+                        <input type="date" id="hta-date" style="display: none;">
+                    </div>
+                    <div>
+                        <label>Lung Diseases:</label>
+                        <input type="radio" name="lung_diseases" value="yes"> Yes
+                        <input type="radio" name="lung_diseases" value="no" checked> No
+                        <input type="date" id="lung_diseases-date" style="display: none;">
+                    </div>
+                    <div>
+                        <label>Gastrointestinal Diseases:</label>
+                        <input type="radio" name="gastrointestinal_diseases" value="yes"> Yes
+                        <input type="radio" name="gastrointestinal_diseases" value="no" checked> No
+                        <input type="date" id="gastrointestinal_diseases-date" style="display: none;">
+                    </div>
+                    <div>
+                        <label>Liver Diseases:</label>
+                        <input type="radio" name="liver_diseases" value="yes"> Yes
+                        <input type="radio" name="liver_diseases" value="no" checked> No
+                        <input type="date" id="liver_diseases-date" style="display: none;">
+                    </div>
+                    <div>
+                        <label>Neurological Diseases:</label>
+                        <input type="radio" name="neurological_diseases" value="yes"> Yes
+                        <input type="radio" name="neurological_diseases" value="no" checked> No
+                        <input type="date" id="neurological_diseases-date" style="display: none;">
+                    </div>
+                    <div>
+                        <label>Cancer:</label>
+                        <input type="radio" name="cancer" value="yes"> Yes
+                        <input type="radio" name="cancer" value="no" checked> No
+                        <input type="date" id="cancer-date" style="display: none;">
+                    </div>
+                    <div>
+                        <label>Osteoarticular Diseases:</label>
+                        <input type="radio" name="osteoarticular_diseases" value="yes"> Yes
+                        <input type="radio" name="osteoarticular_diseases" value="no" checked> No
+                        <input type="date" id="osteoarticular_diseases-date" style="display: none;">
+                    </div>
+                    <div>
+                        <label>Sexual Diseases:</label>
+                        <input type="radio" name="sexual_diseases" value="yes"> Yes
+                        <input type="radio" name="sexual_diseases" value="no" checked> No
+                        <input type="date" id="sexual_diseases-date" style="display: none;">
+                    </div>
                 </fieldset>
                 <button type="submit">Add Patient</button>
             </form>
@@ -46,6 +94,22 @@
             const patientsList = document.getElementById('patients-list');
             const diabetesRadios = document.querySelectorAll('input[name="diabetes"]');
             const diabetesDateInput = document.getElementById('diabetes-date');
+            const htaRadios = document.querySelectorAll('input[name="hta"]');
+            const htaDateInput = document.getElementById('hta-date');
+            const lungDiseasesRadios = document.querySelectorAll('input[name="lung_diseases"]');
+            const lungDiseasesDateInput = document.getElementById('lung_diseases-date');
+            const gastrointestinalDiseasesRadios = document.querySelectorAll('input[name="gastrointestinal_diseases"]');
+            const gastrointestinalDiseasesDateInput = document.getElementById('gastrointestinal_diseases-date');
+            const liverDiseasesRadios = document.querySelectorAll('input[name="liver_diseases"]');
+            const liverDiseasesDateInput = document.getElementById('liver_diseases-date');
+            const neurologicalDiseasesRadios = document.querySelectorAll('input[name="neurological_diseases"]');
+            const neurologicalDiseasesDateInput = document.getElementById('neurological_diseases-date');
+            const cancerRadios = document.querySelectorAll('input[name="cancer"]');
+            const cancerDateInput = document.getElementById('cancer-date');
+            const osteoarticularDiseasesRadios = document.querySelectorAll('input[name="osteoarticular_diseases"]');
+            const osteoarticularDiseasesDateInput = document.getElementById('osteoarticular_diseases-date');
+            const sexualDiseasesRadios = document.querySelectorAll('input[name="sexual_diseases"]');
+            const sexualDiseasesDateInput = document.getElementById('sexual_diseases-date');
 
             let token = localStorage.getItem('token');
 
@@ -97,15 +161,27 @@
                 });
             };
 
-            diabetesRadios.forEach(radio => {
-                radio.addEventListener('change', () => {
-                    if (radio.value === 'yes') {
-                        diabetesDateInput.style.display = 'inline-block';
-                    } else {
-                        diabetesDateInput.style.display = 'none';
-                    }
+            const setupRadioListeners = (radios, dateInput) => {
+                radios.forEach(radio => {
+                    radio.addEventListener('change', () => {
+                        if (radio.value === 'yes') {
+                            dateInput.style.display = 'inline-block';
+                        } else {
+                            dateInput.style.display = 'none';
+                        }
+                    });
                 });
-            });
+            };
+
+            setupRadioListeners(diabetesRadios, diabetesDateInput);
+            setupRadioListeners(htaRadios, htaDateInput);
+            setupRadioListeners(lungDiseasesRadios, lungDiseasesDateInput);
+            setupRadioListeners(gastrointestinalDiseasesRadios, gastrointestinalDiseasesDateInput);
+            setupRadioListeners(liverDiseasesRadios, liverDiseasesDateInput);
+            setupRadioListeners(neurologicalDiseasesRadios, neurologicalDiseasesDateInput);
+            setupRadioListeners(cancerRadios, cancerDateInput);
+            setupRadioListeners(osteoarticularDiseasesRadios, osteoarticularDiseasesDateInput);
+            setupRadioListeners(sexualDiseasesRadios, sexualDiseasesDateInput);
 
             addPatientForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -117,7 +193,23 @@
                     height: document.getElementById('patient-height').value,
                     weight: document.getElementById('patient-weight').value,
                     diabetes_mellitus_type_ii: document.querySelector('input[name="diabetes"]:checked').value === 'yes',
-                    diabetes_mellitus_type_ii_date: document.getElementById('diabetes-date').value
+                    diabetes_mellitus_type_ii_date: document.getElementById('diabetes-date').value,
+                    hta: document.querySelector('input[name="hta"]:checked').value === 'yes',
+                    hta_date: document.getElementById('hta-date').value,
+                    lung_diseases: document.querySelector('input[name="lung_diseases"]:checked').value === 'yes',
+                    lung_diseases_date: document.getElementById('lung_diseases-date').value,
+                    gastrointestinal_diseases: document.querySelector('input[name="gastrointestinal_diseases"]:checked').value === 'yes',
+                    gastrointestinal_diseases_date: document.getElementById('gastrointestinal_diseases-date').value,
+                    liver_diseases: document.querySelector('input[name="liver_diseases"]:checked').value === 'yes',
+                    liver_diseases_date: document.getElementById('liver_diseases-date').value,
+                    neurological_diseases: document.querySelector('input[name="neurological_diseases"]:checked').value === 'yes',
+                    neurological_diseases_date: document.getElementById('neurological_diseases-date').value,
+                    cancer: document.querySelector('input[name="cancer"]:checked').value === 'yes',
+                    cancer_date: document.getElementById('cancer-date').value,
+                    osteoarticular_diseases: document.querySelector('input[name="osteoarticular_diseases"]:checked').value === 'yes',
+                    osteoarticular_diseases_date: document.getElementById('osteoarticular_diseases-date').value,
+                    sexual_diseases: document.querySelector('input[name="sexual_diseases"]:checked').value === 'yes',
+                    sexual_diseases_date: document.getElementById('sexual_diseases-date').value
                 };
                 await api.addPatient(patientData);
                 loadPatients();
